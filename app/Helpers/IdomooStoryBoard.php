@@ -10,7 +10,7 @@ class IdomooStoryBoard extends IdomooBase
 {
     const DEFAULT_STORY_BOARD_ID = 31193;
 
-    public function getStoryBoard()
+    public function get(): array
     {
         try {
             $url = self::US_URL . '/storyboards/' . self::DEFAULT_STORY_BOARD_ID;
@@ -22,9 +22,11 @@ class IdomooStoryBoard extends IdomooBase
             $statusCode = $response->getStatusCode();
             $body = $response->getBody();
             $content = $body->getContents();
+            return (array)json_decode($content);
             dump('$statusCode:', $statusCode);
             dump('$body:', $body);
             dump('$content:', $content);
+            dump('$storyBoard:', $storyBoard);
             // save or update current storyboard
         } catch (ClientException $e) {
             $response = $e->getResponse();

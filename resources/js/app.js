@@ -28,5 +28,25 @@ Vue.component('example-component', require('./components/ExampleComponent.vue').
  */
 
 const app = new Vue({
-    el: '#app',
+  el: '#app',
+  mounted() {
+    console.info('mounted');
+
+    axios
+      .post('/video/', {
+        storyboard_id: 31193,
+        video_type: 'mp4',
+        height: 10,
+        data: [1]
+      })
+      .then((response) => {
+        console.info('response.data')
+        if (response.data.success === true) {
+        } else {
+        }
+      })
+      .catch(() => {
+        console.info('catch');
+      });
+  },
 });
