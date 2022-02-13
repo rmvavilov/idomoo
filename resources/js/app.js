@@ -20,6 +20,7 @@ window.Vue = require('vue').default;
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+Vue.component('video-list-component', require('./components/VideoListComponent.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -28,25 +29,104 @@ Vue.component('example-component', require('./components/ExampleComponent.vue').
  */
 
 const app = new Vue({
-  el: '#app',
-  mounted() {
-    console.info('mounted');
-
-    axios
-      .post('/video/', {
-        storyboard_id: 31193,
-        video_type: 'mp4',
-        height: 10,
-        data: [1]
-      })
-      .then((response) => {
-        console.info('response.data')
-        if (response.data.success === true) {
-        } else {
+    el: '#app',
+    data: {
+        autoplayFirstVideo: false,
+        storyBoardData: [],
+        videos: [],
+        playerOptions: {
+            src: '',
+            interactive: true,
+            size: "hd",
+            autoplay: true,
         }
-      })
-      .catch(() => {
-        console.info('catch');
-      });
-  },
+    },
+    methods: {
+        showGenerateVideoModal() {
+            // this.getStoryBoardData();
+        },
+        playEvent(src) {
+            this.initVideoPlayer(src);
+        },
+        playFirstVideo() {
+            if (!this.autoplayFirstVideo) {
+                return;
+            }
+            if (!this.videos.length) {
+                return;
+            }
+
+            let firstVideo = _.first(this.videos),
+                firstVideoSrc = _.get(firstVideo, 'url', '');
+
+            if (!firstVideoSrc) {
+                return;
+            }
+
+            this.initVideoPlayer(firstVideoSrc);
+        },
+        getVideos() {
+            this.videos = [];
+            axios
+                .get(`/video/`,)
+                .then((response) => {
+                    let isSuccess = response.data.success;
+
+                    if (isSuccess) {
+                        this.videos = _.get(response.data, 'videos', []);
+                        this.playFirstVideo();
+                    } else {
+                        //TODO: show error
+                    }
+                })
+                .catch((e) => {
+                    // show error
+                });
+        },
+        getStoryBoardData() {
+            this.storyBoardData = [];
+            axios
+                .get(`/video/create/`,)
+                .then((response) => {
+                    let isSuccess = response.data.success;
+
+                    if (isSuccess) {
+                        this.storyBoardData = _.get(response.data, 'data', []);
+                    } else {
+                        //TODO: show error
+                    }
+
+                })
+                .catch((e) => {
+                    // show error
+                });
+        },
+        generateVideo() {
+            axios
+                .post('/video/', {
+                    video_type: 'mp4',
+                    height: 10,
+                    data: [1]
+                })
+                .then((response) => {
+                })
+                .catch(() => {
+                    // show error
+                });
+        },
+        initVideoPlayer(src) {
+            let playerId = 'idm',
+                player = window[playerId];
+
+            if (typeof player.dispose === 'function') {
+                player.dispose();
+            }
+
+            this.playerOptions.src = src;
+            idmPlayerCreate(this.playerOptions, playerId);
+        },
+    },
+    mounted() {
+        this.getVideos();
+    },
 });

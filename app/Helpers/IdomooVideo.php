@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Models\Video;
 use GuzzleHttp\Client as GuzzleHttpClient;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Message;
@@ -42,14 +43,32 @@ class IdomooVideo extends IdomooBase
             $statusCode = $response->getStatusCode();
             $body = $response->getBody();
             $content = $body->getContents();
+
+            if ($statusCode === 200) {
+                $data = json_decode($content);
+                $status = $data->status ?? '';
+                $isSuccess = $status === 'Success';
+                if (!$isSuccess) {
+                    return false;
+                }
+
+                $newIdomooVideo = new Video();
+                $newIdomooVideo->user_id = auth()->user()->id;
+                $newIdomooVideo->data = $data;
+                $newIdomooVideo->save();
+
+                return true;
+            }
+
             dump('$statusCode:', $statusCode);
             dump('$body:', $body);
             dump('$content:', $content);
             // save or update current storyboard
-            return true;
+            return false;
         } catch (ClientException $e) {
             dump(Message::toString($e->getRequest()));
             dump(Message::toString($e->getResponse()));
+            return false;
         }
     }
 }

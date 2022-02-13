@@ -34,4 +34,15 @@ class Video extends Model
         self::TYPE_MP4,
         self::TYPE_HLS,
     ];
+
+    protected $fillable = [
+        'user_id',
+        'data',
+        'status',
+    ];
+
+    protected $casts = [
+        'data' => 'array',
+    ];
+
 }

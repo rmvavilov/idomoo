@@ -9,6 +9,8 @@ class StoryBoard extends Model
 {
     use HasFactory;
 
+    const OVERDUE_HOUR_RANGE = 1;
+
     protected $fillable = [
         'storyboard_id',
         'name',
@@ -20,8 +22,8 @@ class StoryBoard extends Model
         'last_modified_at',
     ];
 
-//    protected $casts = [
-//        'data' => 'array',
-//    ];
+    protected $casts = [
+        'data' => 'array',
+    ];
 
 }

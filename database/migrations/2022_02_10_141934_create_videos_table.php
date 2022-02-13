@@ -18,7 +18,7 @@ class CreateVideosTable extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->json('data')->nullable();
-            $table->enum('status', IdomooVideo::STATUSES)->nullable();
+            $table->enum('status', IdomooVideo::STATUSES)->default(IdomooVideo::STATUS_IN_PROCESS);
             $table->timestamps();
         });
 

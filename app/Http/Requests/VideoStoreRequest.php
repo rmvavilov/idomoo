@@ -26,10 +26,10 @@ class VideoStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'storyboard_id' => [
-                'required',
-                'exists:story_boards,storyboard_id'
-            ],
+//            'storyboard_id' => [
+//                'required',
+//                'exists:story_boards,storyboard_id'
+//            ],
             'video_type' => [
                 'required',
                 $this->videoTypes()

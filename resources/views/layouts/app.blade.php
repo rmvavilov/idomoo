@@ -10,6 +10,7 @@
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Scripts -->
+    <script type="text/javascript" src= "https://player.idomoo.com/latest/main.js" defer></script>
     <script src="{{ asset('js/app.js') }}" defer></script>
 
     <!-- Fonts -->
