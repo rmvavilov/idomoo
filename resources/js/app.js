@@ -64,7 +64,7 @@ const app = new Vue({
                 return;
             }
 
-            let firstVideo = _.first(this.videos),
+            let firstVideo = _.find(this.videos, {is_available: true}),
                 firstVideoSrc = _.get(firstVideo, 'url', '');
 
             if (!firstVideoSrc) {
