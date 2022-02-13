@@ -21,6 +21,7 @@ window.Vue = require('vue').default;
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('video-list-component', require('./components/VideoListComponent.vue').default);
+Vue.component('video-modal', require('./components/VideoGenerateComponent.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -28,10 +29,14 @@ Vue.component('video-list-component', require('./components/VideoListComponent.v
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
+Vue.prototype.$eventBus = new Vue();
+
 const app = new Vue({
     el: '#app',
     data: {
-        autoplayFirstVideo: false,
+        showModal: false,
+        autoplayFirstVideo: true,
+        storyBoardName: '',
         storyBoardData: [],
         videos: [],
         playerOptions: {
@@ -42,8 +47,11 @@ const app = new Vue({
         }
     },
     methods: {
+        closeModal() {
+            this.showModal = false;
+        },
         showGenerateVideoModal() {
-            // this.getStoryBoardData();
+            this.getStoryBoardData();
         },
         playEvent(src) {
             this.initVideoPlayer(src);
@@ -92,23 +100,57 @@ const app = new Vue({
 
                     if (isSuccess) {
                         this.storyBoardData = _.get(response.data, 'data', []);
+                        this.storyBoardName = _.get(response.data, 'name', '');
+                        this.showModal = true;
                     } else {
                         //TODO: show error
                     }
-
                 })
                 .catch((e) => {
                     // show error
                 });
         },
-        generateVideo() {
+        checkVideoStatus(videoId) {
+            let index = _.findIndex(this.videos, (videoObj) => {
+                return videoObj.id == videoId;
+            });
+            if (index === -1) {
+                return;
+            }
+            this.$set(this.videos[index], 'checking', true);
+
+            axios
+                .get('/video/' + videoId)
+                .then((response) => {
+                    this.videos[index].checking = false;
+                    let isSuccess = response.data.success;
+                    if (isSuccess) {
+                        let newVideo = _.get(response.data, 'video', {});
+                        Object.assign(this.videos[index], newVideo);
+                    } else {
+                        //TODO: show error
+                    }
+                })
+                .catch(() => {
+                    this.videos[index].checking = false;
+                });
+        },
+        generateVideo(data) {
             axios
                 .post('/video/', {
-                    video_type: 'mp4',
-                    height: 10,
-                    data: [1]
+                    video_type: data.type,
+                    quality: data.quality,
+                    data: data.data
                 })
                 .then((response) => {
+                    let isSuccess = response.data.success;
+                    if (isSuccess) {
+                        let newVideo = _.get(response.data, 'video', {});
+                        this.videos.push(newVideo);
+                        this.showModal = false;
+                    } else {
+                        //TODO: show error
+                    }
                 })
                 .catch(() => {
                     // show error
@@ -125,6 +167,15 @@ const app = new Vue({
             this.playerOptions.src = src;
             idmPlayerCreate(this.playerOptions, playerId);
         },
+    },
+    created() {
+        this.$eventBus.$on('generate', (data) => {
+            this.generateVideo(data);
+        });
+
+        this.$eventBus.$on('check-video', (id) => {
+            this.checkVideoStatus(id);
+        });
     },
     mounted() {
         this.getVideos();

@@ -8,14 +8,15 @@ use Carbon\Carbon;
 
 class StoryBoardRepository
 {
-    public static function getDataArray(): array
+    public static function get(): StoryBoard
     {
         $storyBoard = StoryBoard::query()
             ->where('storyboard_id', IdomooStoryBoard::DEFAULT_STORY_BOARD_ID)
             ->first();
+
         if ($storyBoard) {
             // TODO: check IdomooStoryBoard::DEFAULT_STORY_BOARD_ID and update if need
-            return $storyBoard->data;
+            return $storyBoard;
         }
 
         $idomoo = new IdomooStoryBoard();
@@ -24,6 +25,6 @@ class StoryBoardRepository
         $storyBoard->last_modified_at = $storyBoardArr['last_modified_string'] ?? Carbon::now();
         $storyBoard->save();
 
-        return $storyBoard->data;
+        return $storyBoard;
     }
 }

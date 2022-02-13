@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Models\Video;
+use App\Repositories\ErrorRepository;
 use GuzzleHttp\Client as GuzzleHttpClient;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Psr7\Message;
@@ -33,10 +34,35 @@ class IdomooVideo extends IdomooBase
     public function generate(array $data = [])
     {
         try {
+            $requiredData = [];
+            foreach ($data['data'] as $key => $value) {
+                $requiredData[] = [
+                    "key" => $key,
+                    "val" => $value
+                ];
+            }
+
+            $videoData = [
+                'storyboard_id' => IdomooStoryBoard::DEFAULT_STORY_BOARD_ID,
+                'video_file_name' => 'testvideo',
+                'output' => [
+                    'video' => [
+                        [
+                            'video_type' => $data['video_type'] ?? [],
+                            'quality' => $data['quality'] ?? 26,
+                            'height' => 1024,
+                        ]
+                    ],
+                ],
+
+                'data' => $requiredData,
+
+            ];
+
             $url = self::US_URL . '/storyboards/generate';
             $client = new GuzzleHttpClient();
             $response = $client->post($url, [
-                'json' => $data,
+                'json' => $videoData,
                 'headers' => $this->generateGuzzleHeaders()
             ]);
 
@@ -49,7 +75,8 @@ class IdomooVideo extends IdomooBase
                 $status = $data->status ?? '';
                 $isSuccess = $status === 'Success';
                 if (!$isSuccess) {
-                    return false;
+                    ErrorRepository::save(auth()->user()->id, $videoData, $content);
+                    return null;
                 }
 
                 $newIdomooVideo = new Video();
@@ -57,18 +84,16 @@ class IdomooVideo extends IdomooBase
                 $newIdomooVideo->data = $data;
                 $newIdomooVideo->save();
 
-                return true;
+                return $newIdomooVideo;
             }
 
-            dump('$statusCode:', $statusCode);
-            dump('$body:', $body);
-            dump('$content:', $content);
-            // save or update current storyboard
-            return false;
+            ErrorRepository::save(auth()->user()->id, json_encode($videoData), $content);
+            return null;
         } catch (ClientException $e) {
             dump(Message::toString($e->getRequest()));
             dump(Message::toString($e->getResponse()));
-            return false;
+            ErrorRepository::save(auth()->user()->id, $e->getRequest(), $e->getResponse(), $e->__toString());
+            return null;
         }
     }
 }

@@ -27,6 +27,7 @@ Route::group([
 ], function () {
     Route::get('/', [VideoController::class, 'index',])->name('index');
     Route::get('/create', [VideoController::class, 'create',])->name('create');
+    Route::get('/{video}', [VideoController::class, 'show',])->name('show');
     Route::post('/', [VideoController::class, 'store',])->name('store');
 });
 //endregion [VIDEOS]

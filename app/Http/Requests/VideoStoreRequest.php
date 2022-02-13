@@ -34,10 +34,14 @@ class VideoStoreRequest extends FormRequest
                 'required',
                 $this->videoTypes()
             ],
-            'height' => [
-                'required',
+//            'height' => [
+//                'required',
+//                'numeric',
+//                'between:1,1920'
+//            ],
+            'quality' => [
                 'numeric',
-                'between:1,1920'
+                'between:1,50'
             ],
             'data' => [
                 'required',

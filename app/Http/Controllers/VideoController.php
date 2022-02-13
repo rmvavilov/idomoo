@@ -25,9 +25,12 @@ class VideoController extends Controller
     public function create()
     {
         try {
+            $storyBoard = StoryBoardRepository::get();
+
             return response()->json([
                 'success' => true,
-                'data' => StoryBoardRepository::getDataArray(),
+                'name' => $storyBoard->name,
+                'data' => $storyBoard->data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -38,53 +41,36 @@ class VideoController extends Controller
 
     public function store(VideoStoreRequest $request)
     {
-        $idomooVideo = new IdomooVideo();
-        $data = [
-            "storyboard_id" => IdomooStoryBoard::DEFAULT_STORY_BOARD_ID,
-            "video_file_name" => "testvideo",
-            "output" => [
-                "video" => [
-                    [
-                        "video_type" => "mp4",
-//                        "quality" => 26,
-                        "height" => 1024,
-//                        "crop_to_ratio" => [
-//                            4,
-//                            5
-//                        ],
-//                        "overlay_scale" => "fit",
-//                        "landingPageId" => "string",
-                    ]
-                ],
-            ],
+        try {
+            $idomooVideo = new IdomooVideo();
+            $video = $idomooVideo->generate($request->toArray());
+            $videoData = VideosRepository::getVideoForFrontend($video);
 
-            "data" => [
-                [
-                    "key" => "Address",
-                    "val" => "Address value"
-                ],
-                [
-                    "key" => "Email address",
-                    "val" => "testemail@gmail.com"
-                ],
-                [
-                    "key" => "First name",
-                    "val" => "John"
-                ],
-                [
-                    "key" => "Last name",
-                    "val" => "Smith"
-                ],
-                [
-                    "key" => "Contry",
-                    "val" => "USA"
-                ],
-            ]
-        ];
-        $result = $idomooVideo->generate($data);
+            return response()->json([
+                'success' => true,
+                'video' => $videoData
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+            ]);
+        }
+    }
 
-        return response()->json([
-            'success' => true,
-        ]);
+    public function show(Video $video)
+    {
+        try {
+            $videoData = VideosRepository::getVideoForFrontend($video);
+
+            return response()->json([
+                'success' => true,
+                'video' => $videoData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+            ]);
+        }
+
     }
 }

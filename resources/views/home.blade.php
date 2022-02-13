@@ -2,6 +2,13 @@
 
 @section('content')
 <div class="container">
+    <video-modal
+        v-if="showModal"
+        :name="storyBoardName"
+        :data="storyBoardData"
+        @close="closeModal">
+    </video-modal>
+
     <div class="row justify-content-center">
         <div class="col-md-4">
             <div class="card">
